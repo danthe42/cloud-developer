@@ -36,7 +36,22 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   app.get( "/", async ( req, res ) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
-  
+
+  app.get( "/filteredimage", async ( req, res ) => {
+    const https = require('https');
+    const imgname = req.query["image_url"];
+    try {
+      https.get( imgname, (resp) => {
+        let data='';
+        resp.on( 'data', (chunk) => { data+= chunk; console.log( "Chunk received. Size=" + chunk.length ); });
+        resp.on( 'end', () => { console.log(data); res.send("imgname = " + imgname + " Size = " + data.toString().length ); } );
+        
+      }).on("error", (err) => { console.log( "Error: " + err.message); res.status(400).send( { message: "Error: " + err.message } ); });
+    } catch (err) {
+      console.log( "Error: " + err.message);  
+      res.status(400).send( { message: "Error: " + err.message } );
+    }
+  } );
 
   // Start the Server
   app.listen( port, () => {
