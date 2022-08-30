@@ -1,6 +1,11 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import { spawn } from 'child_process';
+
+function validateUrl(str: string) {
+  return new URL(str);
+}
 
 (async () => {
 
@@ -40,17 +45,27 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   app.get( "/filteredimage", async ( req, res ) => {
     const https = require('https');
     const imgname = req.query["image_url"];
-    try {
-      https.get( imgname, (resp) => {
-        let data='';
-        resp.on( 'data', (chunk) => { data+= chunk; console.log( "Chunk received. Size=" + chunk.length ); });
-        resp.on( 'end', () => { console.log(data); res.send("imgname = " + imgname + " Size = " + data.toString().length ); } );
-        
-      }).on("error", (err) => { console.log( "Error: " + err.message); res.status(400).send( { message: "Error: " + err.message } ); });
-    } catch (err) {
-      console.log( "Error: " + err.message);  
-      res.status(400).send( { message: "Error: " + err.message } );
+
+    if (!imgname || imgname == "") {
+      return res.status(400).send("You must specify an image_url.");
     }
+
+    if (!validateUrl(imgname)) {
+      return res.status(400).send("Invalid URI in image_url");
+    }
+
+    filterImageFromURL( imgname ).then( (fname) => {
+      console.log("Output filename: " + fname)
+      res.sendFile ( fname );  
+
+      // cleanup. This event is fired: "Emitted when the request has been sent. More specifically, this event is emitted when the last segment of the response headers and body have been handed off to the operating system for transmission over the network. It does not imply that the server has received anything yet."     
+      res.on( "finish", function() {
+        deleteLocalFiles( [ fname ] );
+      } );
+      
+    } ).catch( (errmsg) => {
+      return res.status(400).send(errmsg.toString());
+    } ); 
   } );
 
   // Start the Server
