@@ -15,7 +15,6 @@ sin = sys.stdin.read()
 encoded_data = sin.split(',')[1]
 nparr = np.fromstring(base64.b64decode(encoded_data), np.uint8)
 
-pic = base64.b64decode(sin)
 img = cv.imdecode(nparr, cv.IMREAD_GRAYSCALE)
 edges = cv.Canny(img,100,200)
 
