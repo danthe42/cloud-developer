@@ -1,6 +1,11 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import { spawn } from 'child_process';
+
+function validateUrl(str: string) {
+  return new URL(str);
+}
 
 (async () => {
 
@@ -36,7 +41,32 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   app.get( "/", async ( req, res ) => {
     res.send("try GET /filteredimage?image_url={{}}")
   } );
-  
+
+  app.get( "/filteredimage", async ( req, res ) => {
+    const https = require('https');
+    const imgname = req.query["image_url"];
+
+    if (!imgname || imgname == "") {
+      return res.status(400).send("You must specify an image_url.");
+    }
+
+    if (!validateUrl(imgname)) {
+      return res.status(400).send("Invalid URI in image_url");
+    }
+
+    filterImageFromURL( imgname ).then( (fname) => {
+      console.log("Output filename: " + fname)
+      res.sendFile ( fname );  
+
+      // cleanup. This event is fired: "Emitted when the request has been sent. More specifically, this event is emitted when the last segment of the response headers and body have been handed off to the operating system for transmission over the network. It does not imply that the server has received anything yet."     
+      res.on( "finish", function() {
+        deleteLocalFiles( [ fname ] );
+      } );
+      
+    } ).catch( (errmsg) => {
+      return res.status(400).send(errmsg.toString());
+    } ); 
+  } );
 
   // Start the Server
   app.listen( port, () => {
