@@ -6,12 +6,12 @@
 	},
 	"item": [
 		{
-			"name": "http://localhost:8082/filteredimage?image_url=https://timedotcom.files.wordpress.com/2019/03/kitten-report.jpg",
+			"name": "http://localhost:8082/filteredimage?image_url=https://i.pinimg.com/736x/c9/8f/e1/c98fe17dc7de72bb29c34a0c79ef5762.jpg",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://{{HOST}}/filteredimage?image_url=https%3A%2F%2Fdynaimage.cdn.cnn.com%2Fcnn%2Fq_auto%2Cw_900%2Cc_fill%2Cg_auto%2Ch_506%2Car_16%3A9%2Fhttp%253A%252F%252Fcdn.cnn.com%252Fcnnnext%252Fdam%252Fassets%252F220815121134-02-europe-less-crowded-alentejo-swap.jpg",
+					"raw": "http://{{HOST}}/filteredimage?image_url=https://i.pinimg.com/736x/c9/8f/e1/c98fe17dc7de72bb29c34a0c79ef5762.jpg",
 					"protocol": "http",
 					"host": [
 						"{{HOST}}"
@@ -22,7 +22,7 @@
 					"query": [
 						{
 							"key": "image_url",
-							"value": "https%3A%2F%2Fdynaimage.cdn.cnn.com%2Fcnn%2Fq_auto%2Cw_900%2Cc_fill%2Cg_auto%2Ch_506%2Car_16%3A9%2Fhttp%253A%252F%252Fcdn.cnn.com%252Fcnnnext%252Fdam%252Fassets%252F220815121134-02-europe-less-crowded-alentejo-swap.jpg"
+							"value": "https://i.pinimg.com/736x/c9/8f/e1/c98fe17dc7de72bb29c34a0c79ef5762.jpg"
 						}
 					]
 				}
