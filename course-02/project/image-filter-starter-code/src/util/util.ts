@@ -5,10 +5,10 @@ import { spawn, execSync, exec } from 'child_process';
 export function filter(input_base64: string , filteredfname: string) {
   return new Promise(async (resolve, reject) => {
     try {
-        const cmdargs = [ 'src/image_filter.py', filteredfname ];
+        const cmdargs = [ __dirname + '/image_filter.py', filteredfname ];
         console.log("Executing: " + cmdargs);
 
-//        console.log("Base64 [" + input_base64.toString() + "]");
+//        console.log("__dirname: " + __dirname);
         const process = spawn('python3', cmdargs);
             
         process.stdin.write( input_base64.toString() );
@@ -23,8 +23,8 @@ export function filter(input_base64: string , filteredfname: string) {
         process.on('close', function (exitCode) { 
           if( exitCode ) {
 
-            console.log("Python stdout: " + d);
-            console.log("Python stderr: " + error);
+            console.error("Python stdout: " + d);
+            console.error("Python stderr: " + error);
             throw new Error( `Python subprocess exited with error code ` + exitCode);
           }
           
@@ -55,25 +55,26 @@ export async function filterImageFromURL(inputURL: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
     try {
       const rndnum = Math.floor(Math.random() * 2000); 
-      const outpath = "/tmp/filtered." + rndnum + ".jpg";
-      const outpath_unprocessed = "/tmp/unfiltered." + rndnum + ".jpg";
+      const outpath = __dirname + "/tmp/filtered." + rndnum + ".jpg";
+      const outpath_unprocessed = __dirname + "/tmp/unfiltered." + rndnum + ".jpg";
+      Jimp.read(inputURL).then( (photo) => {
+        photo
+          .resize(256, 256) // resize
+          .quality(60) // set JPEG quality
+          .greyscale() // set greyscale
+          .getBase64Async(Jimp.MIME_JPEG).then( input_base64 => 
+          { 
+            const erroutput = filter(input_base64, outpath).then ( erroutput => {
+              // Error handling if something bad happened in python 
+              if (erroutput != "")
+              {
+                reject(erroutput.toString());
+              }
+              resolve(outpath);
+            })
+          });
+      });
 
-      const photo = await Jimp.read(inputURL);
-      await photo
-        .resize(256, 256) // resize
-        .quality(60) // set JPEG quality
-        .greyscale(); // set greyscale
-        const input_base64 = await photo.getBase64Async(Jimp.MIME_JPEG);
-      const erroutput = await filter(input_base64, outpath);
-            
-      // Error handling if something bad happened in python 
-      if (erroutput != "")
-      {
-        throw new Error(erroutput);
-      }
-
-      resolve(outpath);
-      
     } catch (error) {
       reject(error);
     }

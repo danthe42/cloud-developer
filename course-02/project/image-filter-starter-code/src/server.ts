@@ -4,7 +4,11 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
 import { spawn } from 'child_process';
 
 function validateUrl(str: string) {
-  return new URL(str);
+  try {
+    return new URL(str);
+  } catch{
+    return false;  
+  }
 }
 
 (async () => {
@@ -18,7 +22,7 @@ function validateUrl(str: string) {
   // Use the body parser middleware for post requests
   app.use(bodyParser.json());
 
-  // @TODO1 IMPLEMENT A RESTFUL ENDPOINT
+  // IMPLEMENT A RESTFUL ENDPOINT
   // GET /filteredimage?image_url={{URL}}
   // endpoint to filter an image from a public url.
   // IT SHOULD
@@ -34,8 +38,6 @@ function validateUrl(str: string) {
 
   /**************************************************************************** */
 
-  //! END @TODO1
-  
   // Root Endpoint
   // Displays a simple message to the user
   app.get( "/", async ( req, res ) => {
