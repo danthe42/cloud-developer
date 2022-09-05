@@ -3,9 +3,10 @@ import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
 import { spawn } from 'child_process';
 
-function validateUrl(str: string) {
+function validateUrl(str: string) : boolean {
   try {
-    return new URL(str);
+    new URL(str);
+    return true;
   } catch{
     return false;  
   }
@@ -17,7 +18,7 @@ function validateUrl(str: string) {
   const app = express();
 
   // Set the network port
-  const port = process.env.PORT || 8082;
+  const port : number = parseInt( process.env.PORT ) || 8082;
   
   // Use the body parser middleware for post requests
   app.use(bodyParser.json());
@@ -41,12 +42,11 @@ function validateUrl(str: string) {
   // Root Endpoint
   // Displays a simple message to the user
   app.get( "/", async ( req, res ) => {
-    res.send("try GET /filteredimage?image_url={{}}")
+    res.send("try GET /filteredimage?image_url={{}} <P>Example link: <A HREF=\"/filteredimage?image_url=https://i.pinimg.com/736x/c9/8f/e1/c98fe17dc7de72bb29c34a0c79ef5762.jpg\">example</A></P>");
   } );
 
   app.get( "/filteredimage", async ( req, res ) => {
-    const https = require('https');
-    const imgname = req.query["image_url"];
+    const imgname : string = req.query["image_url"];
 
     if (!imgname || imgname == "") {
       return res.status(400).send("You must specify an image_url.");
