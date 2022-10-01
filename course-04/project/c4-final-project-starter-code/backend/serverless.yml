@@ -7,6 +7,9 @@ plugins:
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
 
+package:
+  individually: true
+
 provider:
   name: aws
   runtime: nodejs16.x
@@ -17,6 +20,20 @@ provider:
   tracing:
     lambda: true
     apiGateway: true
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'xray:PutTraceSegments'
+        - 'xray:PutTelemetryRecords'
+      Resource:
+        - '*' 
+    - Effect: Allow
+      Action:
+        - 'logs:PutLogEvents'
+        - 'logs:CreateLogStream'
+        - 'logs:CreateLogGroup'
+      Resource:
+      - '*'  
 
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
@@ -26,16 +43,6 @@ provider:
 
   logs:
     restApi: true
-
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - xray:PutTelemetryRecords
-            - xray:PutTraceSegments
-          Resource: "*"
-
 
 functions:
 
@@ -76,6 +83,12 @@ functions:
         Action:
           - dynamodb:PutItem
         Resource: !GetAtt TodosTable.Arn
+      - Effect: 'Allow'
+        Action:
+          - 'xray:PutTraceSegments'
+          - 'xray:PutTelemetryRecords'
+        Resource:
+          - '*' 
 
   UpdateTodo:
     handler: src/lambda/http/updateTodo.handler
@@ -201,3 +214,7 @@ resources:
               Action: 's3:GetObject'
               Resource: 'arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*'
         Bucket: !Ref AttachmentsBucket
+
+custom:
+  serverless-iam-roles-per-function:
+    defaultInherit: true
