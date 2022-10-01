@@ -8,14 +8,16 @@ import { CreateTodoRequest } from '../requests/CreateTodoRequest'
 const todoAccess = new TodoAccess()
 
 // this should be a sync. function
-export function deleteTodo(
+export async function deleteTodo(
   todoId: string,
   userId: string
-) {
+) : Promise<void> {
 
-  // Todo: check if user is allowed to delete the item, and throw exception if not
+  const todo = await todoAccess.getItem( todoId, userId )
+  if (!todo)
+    throw new Error("Todo record was not found, or the current user is not the owner of it")
 
-  todoAccess.deleteTodoItem( todoId, userId )
+  await todoAccess.deleteTodoItem( todoId, userId )
 } 
 
 export async function createTodo(
