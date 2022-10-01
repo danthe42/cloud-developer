@@ -10,7 +10,6 @@ plugins:
 provider:
   name: aws
   runtime: nodejs16.x
-  lambdaHashingVersion: '20201221'
 
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'eu-central-1'}
@@ -46,8 +45,6 @@ functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
-  # TODO: Configure this function - 
-  # Provide iamRoleStatements property for performing Actions on DynamoDB
   GetTodos:
     handler: src/lambda/http/getTodos.handler
     events:
@@ -56,6 +53,15 @@ functions:
           path: todos
           cors: true
           authorizer: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: !GetAtt TodosTable.Arn
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}
 
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
@@ -74,14 +80,14 @@ functions:
           - dynamodb:PutItem
         Resource: !GetAtt TodosTable.Arn
 
-  # TODO: Configure this function
-  # Provide property for setting up CORS, Authorizer, iamRoleStatements, and request schemas
-  UpdateTodo:
-    handler: src/lambda/http/updateTodo.handler
-    events:
-      - http:
-          method: patch
-          path: todos/{todoId}
+    # TODO: Configure this function
+    # Provide property for setting up CORS, Authorizer, iamRoleStatements, and request schemas
+  #UpdateTodo:
+  #  handler: src/lambda/http/updateTodo.handler
+  #  events:
+  #    - http:
+  #        method: patch
+  #        path: todos/{todoId}
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
@@ -96,24 +102,30 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
-          - dynamodb::DeleteItem
+          - dynamodb:DeleteItem
         Resource: !GetAtt TodosTable.Arn
 
-  # TODO: Configure this function
-  # Provide property for setting up CORS, Authorizer, iamRoleStatements
-  GenerateUploadUrl:
-    handler: src/lambda/http/generateUploadUrl.handler
-    events:
-      - http:
-          method: post
-          path: todos/{todoId}/attachment
+    # TODO: Configure this function
+    # Provide property for setting up CORS, Authorizer, iamRoleStatements
+  #GenerateUploadUrl:
+  #  handler: src/lambda/http/generateUploadUrl.handler
+  #  events:
+  #    - http:
+  #        method: post
+  #        path: todos/{todoId}/attachment
 
 resources:
   Resources:
     GatewayResponseDefault4XX:
       Type: AWS::ApiGateway::GatewayResponse
       Properties:
-    
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+
     TodosTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -141,14 +153,14 @@ resources:
             Projection:
               ProjectionType: ALL # What attributes will be copied to an index 
 
-    # TODO: Complete the bucket properties below. 
-    # Do not forget to add the CorsConfiguration propoerty
-    AttachmentsBucket:
-      Type: AWS::S3::Bucket
-      Properties:
+      # TODO: Complete the bucket properties below. 
+      # Do not forget to add the CorsConfiguration propoerty
+   # AttachmentsBucket:
+   #   Type: AWS::S3::Bucket
+   #   Properties:
 
-    # TODO: Complete the policy below and attach it to the bucket defined above
-    # For cross referencing the name of the bucket, use "!Ref AttachmentsBucket"
-    BucketPolicy:
-      Type: AWS::S3::BucketPolicy
-      Properties:
+      # TODO: Complete the policy below and attach it to the bucket defined above
+      # For cross referencing the name of the bucket, use "!Ref AttachmentsBucket"
+    #BucketPolicy:
+    #  Type: AWS::S3::BucketPolicy
+    #  Properties:

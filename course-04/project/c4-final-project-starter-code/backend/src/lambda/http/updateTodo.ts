@@ -1,3 +1,4 @@
+/*
 import 'source-map-support/register'
 
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
@@ -25,3 +26,4 @@ handler
       credentials: true
     })
   )
+*/

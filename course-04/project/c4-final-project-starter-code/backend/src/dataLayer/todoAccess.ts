@@ -1,17 +1,20 @@
 import * as AWS  from 'aws-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
-//import { createLogger } from '../utils/logger'
+import { createLogger } from '../utils/logger'
 import { TodoItem } from '../models/TodoItem'
 
 const AWSXRay = require('aws-xray-sdk')
 const XAWS = AWSXRay.captureAWS(AWS)
-//const logger = createLogger('TodosAccess')
+const logger = createLogger('todoAccess')
 
 export class TodoAccess {
 
   constructor(
     private readonly docClient: DocumentClient = createDynamoDBClient(),
-    private readonly todoTable = process.env.TODOS_TABLE) {
+    private readonly todoTable = process.env.TODOS_TABLE,
+    private readonly todoTableIndexname = process.env.TODOS_CREATED_AT_INDEX
+
+    ) {
   }
 
   deleteTodoItem(  
@@ -37,6 +40,19 @@ export class TodoAccess {
 
     return todoItem
   }
+  async getTodosForUser( userid: string ) : Promise<TodoItem[]> {
+    logger.info("getTodosForUser", { userid: userid, todoTable: this.todoTable, todoTableIndexname: this.todoTableIndexname } )
+    const result = await this.docClient.query({
+      TableName: this.todoTable,
+      IndexName: this.todoTableIndexname,
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: {
+        ':userId': userid
+      },
+      ScanIndexForward: false
+    }).promise()
+    return result.Items as TodoItem[]
+  } 
 }
 
 function createDynamoDBClient() {
